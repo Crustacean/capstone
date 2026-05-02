@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: sandbox
+resources:
+  - ../base
+replicas:
+  - name: release-dashboard
+    count: 1
+patches:
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: release-dashboard
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 2

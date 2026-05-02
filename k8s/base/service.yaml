@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-dashboard
+  labels:
+    app: release-dashboard
+spec:
+  type: ClusterIP
+  selector:
+    app: release-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
