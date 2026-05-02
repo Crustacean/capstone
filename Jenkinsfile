@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
+        APP_NAME = 'release-dashboard'
         IMAGE_NAME = 'release-dashboard'
-        APP_VERSION = "${env.BUILD_NUMBER}"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
         PYTHON_BIN = 'python3'
 
         KUBE_CA_CERT = '''MIIDBjCCAe6gAwIBAgIBATANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDEwptaW5p
@@ -48,7 +49,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
 
         stage('Build Image') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:${APP_VERSION} .'
+                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
             }
         }
 
@@ -61,6 +62,10 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
             }
             steps {
                 script {
+                    env.DEPLOYMENT_NAME = "${env.APP_NAME}"
+                    env.CONTAINER_NAME = 'app'
+                    env.NAMESPACE_NAME = env.KUBE_NAMESPACE
+
                     withKubeConfig(
                         caCertificate: env.KUBE_CA_CERT,
                         clusterName: env.KUBE_CLUSTER,
@@ -70,8 +75,10 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                         restrictKubeConfigAccess: false,
                         serverUrl: env.KUBE_SERVER_URL
                     ) {
-                        sh 'kubectl -n ${KUBE_NAMESPACE} set image deployment/release-dashboard app=${IMAGE_NAME}:${APP_VERSION}'
-                        sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/release-dashboard'
+                        sh 'envsubst --version'
+                        sh 'envsubst < deploy.yaml > prepared-deploy.yaml'
+                        sh 'kubectl apply -f prepared-deploy.yaml'
+                        sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${DEPLOYMENT_NAME}'
                     }
                 }
             }
@@ -87,6 +94,10 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
             steps {
                 input message: 'Promote this release to Dev?'
                 script {
+                    env.DEPLOYMENT_NAME = "${env.APP_NAME}"
+                    env.CONTAINER_NAME = 'app'
+                    env.NAMESPACE_NAME = env.KUBE_NAMESPACE
+
                     withKubeConfig(
                         caCertificate: env.KUBE_CA_CERT,
                         clusterName: env.KUBE_CLUSTER,
@@ -96,8 +107,10 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                         restrictKubeConfigAccess: false,
                         serverUrl: env.KUBE_SERVER_URL
                     ) {
-                        sh 'kubectl -n ${KUBE_NAMESPACE} set image deployment/release-dashboard app=${IMAGE_NAME}:${APP_VERSION}'
-                        sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/release-dashboard'
+                        sh 'envsubst --version'
+                        sh 'envsubst < deploy.yaml > prepared-deploy.yaml'
+                        sh 'kubectl apply -f prepared-deploy.yaml'
+                        sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${DEPLOYMENT_NAME}'
                     }
                 }
             }
@@ -113,6 +126,10 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
             steps {
                 input message: 'Promote this release to UAT?'
                 script {
+                    env.DEPLOYMENT_NAME = "${env.APP_NAME}"
+                    env.CONTAINER_NAME = 'app'
+                    env.NAMESPACE_NAME = env.KUBE_NAMESPACE
+
                     withKubeConfig(
                         caCertificate: env.KUBE_CA_CERT,
                         clusterName: env.KUBE_CLUSTER,
@@ -122,8 +139,10 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                         restrictKubeConfigAccess: false,
                         serverUrl: env.KUBE_SERVER_URL
                     ) {
-                        sh 'kubectl -n ${KUBE_NAMESPACE} set image deployment/release-dashboard app=${IMAGE_NAME}:${APP_VERSION}'
-                        sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/release-dashboard'
+                        sh 'envsubst --version'
+                        sh 'envsubst < deploy.yaml > prepared-deploy.yaml'
+                        sh 'kubectl apply -f prepared-deploy.yaml'
+                        sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${DEPLOYMENT_NAME}'
                     }
                 }
             }
@@ -139,6 +158,10 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
             steps {
                 input message: 'Promote this release to Production?'
                 script {
+                    env.DEPLOYMENT_NAME = "${env.APP_NAME}"
+                    env.CONTAINER_NAME = 'app'
+                    env.NAMESPACE_NAME = env.KUBE_NAMESPACE
+
                     withKubeConfig(
                         caCertificate: env.KUBE_CA_CERT,
                         clusterName: env.KUBE_CLUSTER,
@@ -148,8 +171,10 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                         restrictKubeConfigAccess: false,
                         serverUrl: env.KUBE_SERVER_URL
                     ) {
-                        sh 'kubectl -n ${KUBE_NAMESPACE} set image deployment/release-dashboard app=${IMAGE_NAME}:${APP_VERSION}'
-                        sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/release-dashboard'
+                        sh 'envsubst --version'
+                        sh 'envsubst < deploy.yaml > prepared-deploy.yaml'
+                        sh 'kubectl apply -f prepared-deploy.yaml'
+                        sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${DEPLOYMENT_NAME}'
                     }
                 }
             }
