@@ -4,13 +4,15 @@ pipeline {
     environment {
         IMAGE_NAME = 'release-dashboard'
         APP_VERSION = "${env.BUILD_NUMBER}"
+        PYTHON_BIN = 'python3.12'
     }
 
     stages {
         stage('Install') {
             steps {
-                sh 'python3 -m venv .venv'
-                sh '. .venv/bin/activate && pip install -r requirements-dev.txt'
+                sh '${PYTHON_BIN} --version'
+                sh '${PYTHON_BIN} -m venv .venv'
+                sh '. .venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements-dev.txt'
             }
         }
 

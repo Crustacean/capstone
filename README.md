@@ -48,6 +48,15 @@ curl -X POST 'http://127.0.0.1:8000/promote/sandbox?actor=jenkins'
 pytest
 ```
 
+## Jenkins Agent Prerequisite
+
+The `Jenkinsfile` uses `python3.12` because the app image is based on Python 3.12 and the pinned FastAPI/Pydantic dependencies are not compatible with Python 3.14 on the Jenkins agent.
+
+```bash
+python3.12 --version
+python3.12 -m venv .venv
+```
+
 ## Build Image
 
 ```bash
