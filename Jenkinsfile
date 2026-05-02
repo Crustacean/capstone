@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'release-dashboard'
         APP_VERSION = "${env.BUILD_NUMBER}"
-        PYTHON_BIN = 'python3.12'
+        PYTHON_BIN = 'python3'
     }
 
     stages {

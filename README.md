@@ -38,7 +38,7 @@ curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/deployments
 curl -X POST http://127.0.0.1:8000/deployments \
   -H 'Content-Type: application/json' \
-  -d '{"environment":"sandbox","version":"v1.0.0","actor":"jenkins"}'
+  -d '{"version":"v1.0.0","actor":"jenkins"}'
 curl -X POST 'http://127.0.0.1:8000/promote/sandbox?actor=jenkins'
 ```
 
@@ -50,12 +50,9 @@ pytest
 
 ## Jenkins Agent Prerequisite
 
-The `Jenkinsfile` uses `python3.12` because the app image is based on Python 3.12 and the pinned FastAPI/Pydantic dependencies are not compatible with Python 3.14 on the Jenkins agent.
+The `Jenkinsfile` uses the Jenkins agent's `python3`. The dependency pins are kept on versions that support Python 3.14, because the current Jenkins agent reports CPython 3.14.
 
-```bash
-python3.12 --version
-python3.12 -m venv .venv
-```
+The Docker image also uses Python 3.14 so local containers and Jenkins builds stay aligned.
 
 ## Build Image
 
