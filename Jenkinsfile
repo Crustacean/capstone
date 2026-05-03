@@ -104,7 +104,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
             }
         }
 
-        stage('Promote to Dev') {
+        stage('Deploy to Dev') {
             when {
                 branch 'main'
             }
