@@ -26,7 +26,6 @@ def test_create_and_list_deployment(tmp_path):
     create_response = client.post(
         "/deployments",
         json={
-            "environment": "sandbox",
             "version": "v1.2.3",
             "actor": "jenkins",
             "notes": "Smoke tests passed",
@@ -36,14 +35,31 @@ def test_create_and_list_deployment(tmp_path):
 
     assert create_response.status_code == 201
     assert create_response.json()["version"] == "v1.2.3"
+    assert create_response.json()["environment"] == "sandbox"
     assert list_response.json()[0]["environment"] == "sandbox"
+
+
+def test_create_ignores_environment_selection_and_deploys_to_sandbox(tmp_path):
+    client = client_with_temp_db(tmp_path)
+
+    response = client.post(
+        "/deployments",
+        json={
+            "environment": "prod",
+            "version": "v9.9.9",
+            "actor": "jenkins",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["environment"] == "sandbox"
 
 
 def test_promote_copies_latest_version_to_next_environment(tmp_path):
     client = client_with_temp_db(tmp_path)
     client.post(
         "/deployments",
-        json={"environment": "sandbox", "version": "v2.0.0", "actor": "jenkins"},
+        json={"version": "v2.0.0", "actor": "jenkins"},
     )
 
     response = client.post("/promote/sandbox?actor=jenkins")

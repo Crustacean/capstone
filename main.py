@@ -10,9 +10,10 @@ from pydantic import BaseModel, Field
 
 
 APP_NAME = "Release Dashboard"
-ENVIRONMENTS = ("sandbox", "dev", "uat", "prod")
+SANDBOX_ENVIRONMENT = "sandbox"
+ENVIRONMENTS = (SANDBOX_ENVIRONMENT, "dev", "uat", "prod")
 PROMOTION_FLOW = {
-    "sandbox": "dev",
+    SANDBOX_ENVIRONMENT: "dev",
     "dev": "uat",
     "uat": "prod",
 }
@@ -30,7 +31,6 @@ class Deployment(BaseModel):
 
 
 class DeploymentCreate(BaseModel):
-    environment: str = Field(pattern="^(sandbox|dev|uat|prod)$")
     version: str = Field(min_length=1, max_length=50)
     status: str = Field(default="deployed", min_length=1, max_length=30)
     actor: str = Field(default="release-bot", min_length=1, max_length=60)
@@ -96,7 +96,8 @@ def latest_deployments() -> dict[str, Deployment | None]:
         ).fetchall()
     for row in rows:
         deployment = row_to_deployment(row)
-        results[deployment.environment] = deployment
+        if deployment.environment in results:
+            results[deployment.environment] = deployment
     return results
 
 
@@ -114,7 +115,13 @@ def deployment_history(limit: int = 20) -> list[Deployment]:
     return [row_to_deployment(row) for row in rows]
 
 
-def create_deployment(payload: DeploymentCreate) -> Deployment:
+def create_environment_deployment(
+    environment: str,
+    version: str,
+    status_text: str,
+    actor: str,
+    notes: str = "",
+) -> Deployment:
     with connect() as conn:
         cursor = conn.execute(
             """
@@ -122,11 +129,11 @@ def create_deployment(payload: DeploymentCreate) -> Deployment:
             VALUES (?, ?, ?, ?, ?, ?)
             """,
             (
-                payload.environment,
-                payload.version,
-                payload.status,
-                payload.actor,
-                payload.notes,
+                environment,
+                version,
+                status_text,
+                actor,
+                notes,
                 now_iso(),
             ),
         )
@@ -136,6 +143,16 @@ def create_deployment(payload: DeploymentCreate) -> Deployment:
             (deployment_id,),
         ).fetchone()
     return row_to_deployment(row)
+
+
+def create_deployment(payload: DeploymentCreate) -> Deployment:
+    return create_environment_deployment(
+        environment=SANDBOX_ENVIRONMENT,
+        version=payload.version,
+        status_text=payload.status,
+        actor=payload.actor,
+        notes=payload.notes or "Deployed to sandbox",
+    )
 
 
 def promote(source_environment: str, actor: str = "release-bot") -> Deployment:
@@ -154,14 +171,12 @@ def promote(source_environment: str, actor: str = "release-bot") -> Deployment:
         )
 
     target_environment = PROMOTION_FLOW[source_environment]
-    return create_deployment(
-        DeploymentCreate(
-            environment=target_environment,
-            version=source.version,
-            status="promoted",
-            actor=actor,
-            notes=f"Promoted from {source_environment}",
-        )
+    return create_environment_deployment(
+        environment=target_environment,
+        version=source.version,
+        status_text="promoted",
+        actor=actor,
+        notes=f"Promoted from {source_environment}",
     )
 
 
@@ -247,9 +262,28 @@ def dashboard_html() -> str:
                 --line: #d8dee9;
                 --surface: #ffffff;
                 --page: #f5f7fa;
+                --header: #17202a;
+                --header-muted: #c9d4e2;
                 --accent: #137c75;
                 --accent-dark: #0d5f5a;
                 --warning: #b45309;
+                --input: #ffffff;
+                --shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+            }}
+            body[data-theme="dark"] {{
+                color-scheme: dark;
+                --ink: #edf3f8;
+                --muted: #aab7c7;
+                --line: #334155;
+                --surface: #151f2e;
+                --page: #0b1120;
+                --header: #050914;
+                --header-muted: #b6c5d8;
+                --accent: #2dd4bf;
+                --accent-dark: #14b8a6;
+                --warning: #f59e0b;
+                --input: #0f172a;
+                --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
             }}
             * {{ box-sizing: border-box; }}
             body {{
@@ -259,15 +293,21 @@ def dashboard_html() -> str:
                 color: var(--ink);
             }}
             header {{
-                background: #17202a;
+                background: var(--header);
                 color: white;
                 padding: 28px clamp(18px, 4vw, 48px);
             }}
-            header p {{ color: #c9d4e2; margin: 6px 0 0; max-width: 780px; }}
+            .header-inner {{
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 18px;
+            }}
+            header p {{ color: var(--header-muted); margin: 6px 0 0; max-width: 780px; }}
             main {{ padding: 28px clamp(18px, 4vw, 48px) 48px; }}
             .toolbar {{
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) auto auto auto;
+                grid-template-columns: minmax(0, 1fr) auto auto;
                 gap: 12px;
                 align-items: end;
                 background: var(--surface);
@@ -275,6 +315,7 @@ def dashboard_html() -> str:
                 border-radius: 8px;
                 padding: 16px;
                 margin-bottom: 22px;
+                box-shadow: var(--shadow);
             }}
             label {{ display: grid; gap: 6px; color: var(--muted); font-size: 13px; }}
             input, select, button {{
@@ -284,14 +325,30 @@ def dashboard_html() -> str:
                 padding: 0 12px;
                 font: inherit;
             }}
+            input, select {{
+                background: var(--input);
+                color: var(--ink);
+            }}
             button {{
                 border: 0;
                 background: var(--accent);
-                color: white;
+                color: #05251f;
                 font-weight: 700;
                 cursor: pointer;
             }}
             button:hover {{ background: var(--accent-dark); }}
+            .theme-toggle {{
+                flex: 0 0 auto;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                min-width: 132px;
+                border: 1px solid rgba(255, 255, 255, 0.24);
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }}
+            .theme-toggle:hover {{ background: rgba(255, 255, 255, 0.18); }}
+            .theme-icon {{ font-size: 17px; line-height: 1; }}
             .grid {{
                 display: grid;
                 grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -307,6 +364,7 @@ def dashboard_html() -> str:
                 display: grid;
                 gap: 14px;
                 align-content: start;
+                box-shadow: var(--shadow);
             }}
             .env-card.deployed {{ border-top-color: var(--accent); }}
             .env-card.promoted {{ border-top-color: #365bd6; }}
@@ -331,6 +389,7 @@ def dashboard_html() -> str:
                 border: 1px solid var(--line);
                 border-radius: 8px;
                 overflow: auto;
+                box-shadow: var(--shadow);
             }}
             .history h2 {{ padding: 18px 18px 0; font-size: 20px; }}
             table {{ width: 100%; border-collapse: collapse; min-width: 860px; }}
@@ -345,32 +404,33 @@ def dashboard_html() -> str:
                 .toolbar, .grid {{ grid-template-columns: 1fr 1fr; }}
             }}
             @media (max-width: 620px) {{
+                .header-inner {{ flex-direction: column; }}
                 .toolbar, .grid {{ grid-template-columns: 1fr; }}
             }}
         </style>
     </head>
     <body>
         <header>
-            <h1>{APP_NAME}</h1>
-            <p>Track versions across sandbox, dev, UAT, and production, then promote releases through the same flow your CI/CD pipeline will automate.</p>
+            <div class="header-inner">
+                <div>
+                    <h1>{APP_NAME}</h1>
+                    <p>Deploy new versions to Sandbox first, then promote the same release through Dev, UAT, and production.</p>
+                </div>
+                <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">
+                    <span class="theme-icon" aria-hidden="true">☾</span>
+                    <span class="theme-label">Dark mode</span>
+                </button>
+            </div>
         </header>
         <main>
             <form class="toolbar" method="post" action="/ui/deployments">
                 <label>Version
                     <input name="version" placeholder="v1.0.0" required maxlength="50">
                 </label>
-                <label>Environment
-                    <select name="environment">
-                        <option value="sandbox">Sandbox</option>
-                        <option value="dev">Dev</option>
-                        <option value="uat">UAT</option>
-                        <option value="prod">Prod</option>
-                    </select>
-                </label>
                 <label>Actor
                     <input name="actor" value="release-bot" required maxlength="60">
                 </label>
-                <button type="submit">Deploy</button>
+                <button type="submit">Deploy to Sandbox</button>
             </form>
             <div class="grid">
                 {render_environment_cards(latest)}
@@ -395,6 +455,27 @@ def dashboard_html() -> str:
                 </table>
             </section>
         </main>
+        <script>
+            const themeToggle = document.getElementById("themeToggle");
+            const themeIcon = themeToggle.querySelector(".theme-icon");
+            const themeLabel = themeToggle.querySelector(".theme-label");
+            const savedTheme = localStorage.getItem("release-dashboard-theme");
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+            function applyTheme(theme) {{
+                const isDark = theme === "dark";
+                document.body.dataset.theme = theme;
+                themeToggle.setAttribute("aria-pressed", String(isDark));
+                themeIcon.textContent = isDark ? "☀" : "☾";
+                themeLabel.textContent = isDark ? "Light mode" : "Dark mode";
+                localStorage.setItem("release-dashboard-theme", theme);
+            }}
+
+            applyTheme(savedTheme || (prefersDark ? "dark" : "light"));
+            themeToggle.addEventListener("click", () => {{
+                applyTheme(document.body.dataset.theme === "dark" ? "light" : "dark");
+            }});
+        </script>
     </body>
     </html>
     """
@@ -440,13 +521,11 @@ def dashboard(_: Request) -> HTMLResponse:
 
 @app.post("/ui/deployments")
 def ui_create_deployment(
-    environment: str = Form(...),
     version: str = Form(...),
     actor: str = Form("release-bot"),
 ) -> RedirectResponse:
     create_deployment(
         DeploymentCreate(
-            environment=environment,
             version=version,
             actor=actor,
             notes="Created from dashboard",
