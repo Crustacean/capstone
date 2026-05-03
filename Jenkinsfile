@@ -53,6 +53,24 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
             }
         }
 
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry("", 'docker-hub-credentials') {
+                        dockerImage.push()
+                        dockerImage.push("latest")
+                    }
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+                sh "docker rmi ${IMAGE_NAME}:latest || true"
+            }
+        }
+
         stage('Deploy to Sandbox') {
             when {
                 branch 'dev'
