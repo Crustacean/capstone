@@ -112,7 +112,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                 KUBE_NAMESPACE = 'dev'
             }
             steps {
-                input message: 'Promote this release to Dev?'
+                input message: "Deploy version ${IMAGE_TAG} to UAT?", ok: 'Deploy to UAT'
                 script {
                     env.DEPLOYMENT_NAME = "${env.APP_NAME}"
                     env.CONTAINER_NAME = 'app'
@@ -144,7 +144,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                 KUBE_NAMESPACE = 'uat'
             }
             steps {
-                input message: 'Promote this release to UAT?'
+                input message: "Deploy version ${IMAGE_TAG} to UAT?", ok: 'Deploy to UAT'
                 script {
                     env.DEPLOYMENT_NAME = "${env.APP_NAME}"
                     env.CONTAINER_NAME = 'app'
@@ -176,7 +176,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                 KUBE_NAMESPACE = 'prod'
             }
             steps {
-                input message: 'Promote this release to Production?'
+                input message: "Deploy version ${IMAGE_TAG} to UAT?", ok: 'Deploy to UAT'
                 script {
                     env.DEPLOYMENT_NAME = "${env.APP_NAME}"
                     env.CONTAINER_NAME = 'app'
