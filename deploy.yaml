@@ -22,6 +22,13 @@ spec:
       containers:
         - image: $IMAGE_NAME:$IMAGE_TAG
           name: $CONTAINER_NAME
+          ports:
+            - containerPort: 8000
+          env:
+            - name: RELEASE_DASHBOARD_DB
+              value: /data/release_dashboard.db
+            - name: APP_VERSION
+              value: "$IMAGE_TAG"
           resources:
             requests:
               memory: "64Mi"
@@ -29,6 +36,24 @@ spec:
             limits:
               memory: "128Mi"
               cpu: "100m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
