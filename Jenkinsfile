@@ -96,7 +96,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                         serverUrl: env.KUBE_SERVER_URL
                     ) {
                         sh 'envsubst --version'
-                        sh 'envsubst < deploy.yaml > prepared-deploy.yaml'
+                        sh 'envsubst < k8s/base/deployment.yaml > prepared-deploy.yaml'
                         sh 'kubectl apply -f prepared-deploy.yaml'
                         sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${DEPLOYMENT_NAME}'
                     }
@@ -127,7 +127,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                         serverUrl: env.KUBE_SERVER_URL
                     ) {
                         sh 'envsubst --version'
-                        sh 'envsubst < deploy.yaml > prepared-deploy.yaml'
+                        sh 'envsubst < k8s/base/deployment.yaml > prepared-deploy.yaml'
                         sh 'kubectl apply -f prepared-deploy.yaml'
                         sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${DEPLOYMENT_NAME}'
                     }
@@ -159,7 +159,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                         serverUrl: env.KUBE_SERVER_URL
                     ) {
                         sh 'envsubst --version'
-                        sh 'envsubst < deploy.yaml > prepared-deploy.yaml'
+                        sh 'envsubst < k8s/base/deployment.yaml > prepared-deploy.yaml'
                         sh 'kubectl apply -f prepared-deploy.yaml'
                         sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${DEPLOYMENT_NAME}'
                     }
@@ -191,7 +191,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
                         serverUrl: env.KUBE_SERVER_URL
                     ) {
                         sh 'envsubst --version'
-                        sh 'envsubst < deploy.yaml > prepared-deploy.yaml'
+                        sh 'envsubst < k8s/base/deployment.yaml > prepared-deploy.yaml'
                         sh 'kubectl apply -f prepared-deploy.yaml'
                         sh 'kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${DEPLOYMENT_NAME}'
                     }

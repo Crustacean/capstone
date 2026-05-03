@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: release-dashboard:local
+          image: $IMAGE_NAME:$IMAGE_TAG
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
@@ -24,7 +24,7 @@ spec:
             - name: RELEASE_DASHBOARD_DB
               value: /data/release_dashboard.db
             - name: APP_VERSION
-              value: local
+              value: "$IMAGE_TAG"
           resources:
             requests:
               cpu: 100m
