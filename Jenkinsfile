@@ -49,7 +49,7 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
 
         stage('Build Image') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
+                dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
             }
         }
 
