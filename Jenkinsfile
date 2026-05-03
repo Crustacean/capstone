@@ -49,7 +49,9 @@ cwQum+Eu9dWnqhHrDuzII+YgytFYh5Rmwar84+S2N6cKn9/rfIt5R3xi0pLL2QUs
 
         stage('Build Image') {
             steps {
-                dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                script {
+                    dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                }
             }
         }
 
