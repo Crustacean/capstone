@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         APP_NAME = 'release-dashboard'
-        IMAGE_NAME = 'release-dashboard'
+        IMAGE_NAME = "em22435/release-dashboard".toLowerCase()
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         PYTHON_BIN = 'python3'
 
